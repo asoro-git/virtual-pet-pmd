@@ -28,7 +28,6 @@ const getStorage = (key: string, fallback: any) => {
 
 export default function HomePage() {
     // Core state
-    const [workGoal, setWorkGoal] = useState(() => getStorage("workGoal", 50));
     const [petLastFed, setPetLastFed] = useState(() => getStorage("petLastFed", Date.now()));
     const [workStreak, setWorkStreak] = useState(() => getStorage("workStreak", 0));
     const [pomodoroProgress, setPomodoroProgress] = useState(getStorage("pomodoroProgress", 0));
@@ -42,7 +41,6 @@ export default function HomePage() {
     const [monsterIndex, setMonsterIndex] = useState(0);
     const [monster, setMonster] = useState(() => ({ ...bestiary[0] }));
     const [battleLog, setBattleLog] = useState<string[]>([]);
-    const [quote, setQuote] = useState("Loading stoic wisdom...");
     const [spotifyUrl, setSpotifyUrl] = useState(
         () =>
             localStorage.getItem("spotifyUrl") ||
@@ -112,34 +110,15 @@ export default function HomePage() {
         return () => clearInterval(timer);
     }, [startTime, petStats, monsterIndex]);
 
-    // Fetch stoic quote
-    useEffect(() => {
-        const fetchQuote = async () => {
-            try {
-                const res = await fetch("https://api.themotivate365.com/stoic-quote");
-                const data = await res.json();
-                data.quote && setQuote(data.quote);
-            } catch {
-                setQuote(
-                    "Waste no more time arguing what a good man should be. Be one. — Marcus Aurelius",
-                );
-            }
-        };
-        fetchQuote();
-        const iv = setInterval(fetchQuote, 5000);
-        return () => clearInterval(iv);
-    }, []);
-
     // Persist everything
     useEffect(() => {
         localStorage.setItem("spotifyUrl", spotifyUrl);
-        localStorage.setItem("workGoal", JSON.stringify(workGoal));
         localStorage.setItem("petLastFed", JSON.stringify(petLastFed));
         localStorage.setItem("workStreak", JSON.stringify(workStreak));
         localStorage.setItem("pomodorosToday", JSON.stringify(pomodorosToday));
         localStorage.setItem("petStats", JSON.stringify(petStats));
         localStorage.setItem("pomodoroProgress", JSON.stringify(pomodoroProgress));
-    }, [spotifyUrl, workGoal, petLastFed, workStreak, pomodorosToday, petStats, pomodoroProgress]);
+    }, [spotifyUrl, petLastFed, workStreak, pomodorosToday, petStats, pomodoroProgress]);
 
     // Handlers
     const handleFeedPet = () => {
@@ -279,6 +258,7 @@ export default function HomePage() {
                     </Link>
                 </Button>
                 <span className="text-sm text-zinc-500 hidden sm:block">Link days into line</span>
+                {showWarning ? "" : ""}
             </header>{" "}
             {/* App Grid Layout */}
             <div className="grid md:grid-cols-4 gap-4 p-4">
@@ -415,7 +395,6 @@ export default function HomePage() {
                         <iframe
                             className="w-full h-24"
                             src={`https://open.spotify.com/embed/show/${spotifyUrl.split("/").pop()?.split("?")[0]}`}
-                            frameBorder="0"
                             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                             allowFullScreen
                             loading="lazy"
