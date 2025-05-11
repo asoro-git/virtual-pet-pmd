@@ -16,7 +16,7 @@ export default function HabitTrackerPage() {
         lastMarked: string | null;
         markedDates: string[];
     }
-    const [habits, setHabits] = useState<Habit[]>([]);
+    const [habits, setHabits] = useState<habits[]>([]);
     useEffect(() => {
         const stored = localStorage.getItem("habits");
         if (stored) {
