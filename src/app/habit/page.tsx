@@ -16,11 +16,13 @@ export default function HabitTrackerPage() {
         lastMarked: string | null;
         markedDates: string[];
     }
-    const [habits, setHabits] = useState(() => {
-        if (typeof window === "undefined") return [];
+    const [habits, setHabits] = useState<Habit[]>([]);
+    useEffect(() => {
         const stored = localStorage.getItem("habits");
-        return stored ? JSON.parse(stored) : [];
-    });
+        if (stored) {
+            setHabits(JSON.parse(stored));
+        }
+    }, []);
     const [newHabit, setNewHabit] = useState("");
     const [reflections, setReflections] = useState(() => {
         const stored = localStorage.getItem("reflections");
