@@ -27,9 +27,9 @@ export function LifeOSPanel() {
     };
 
     return (
-        <div className="grid md:grid-cols-2 gap-4 mt-6">
+        <div className="gap-4 mt-6 ">
             {/* Quarterly Quests Panel */}
-            <section className="border border-zinc-200 bg-white p-4 rounded-xl">
+            <section className=" bg-white ">
                 <h2 className="text-lg font-medium mb-2">🏹 Quarterly Quests</h2>
                 <p className="text-sm text-zinc-500 mb-2">
                     Set 1–3 big goals to complete this quarter that align with your values.
