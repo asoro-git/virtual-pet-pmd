@@ -1,0 +1,87 @@
+[
+    {
+        "question": "Sarah wants to clarify her business's unique purpose. According to Daniel Priestley, what part of the CAOS framework should she focus on?",
+        "options": ["Offer", "Audience", "Concept", "Sales"],
+        "answer": 2,
+        "topic": "CAOS - Concept",
+        "case": "Sarah's OT business setup"
+    },
+    {
+        "question": "To emotionally connect with clients and referral partners, what part of her story should Sarah highlight using the OMV model?",
+        "options": [
+            "Her logo design",
+            "Her income goals",
+            "Her origin, mission, and vision",
+            "Her pricing"
+        ],
+        "answer": 2,
+        "topic": "OMV storytelling",
+        "case": "Sarah's background and values"
+    },
+    {
+        "question": "Sarah wants to avoid burnout and plans to eventually delegate tasks. What role should she aim to grow into?",
+        "options": ["Operator", "Technician", "Owner", "Case Manager"],
+        "answer": 2,
+        "topic": "Owner vs Operator",
+        "case": "Scaling the business"
+    },
+    {
+        "question": "Sarah is choosing which product types to offer. Which is NOT one of the 4 product types mentioned by Daniel Priestley?",
+        "options": ["Services", "Digital Products", "Licensing", "Equity Shares"],
+        "answer": 3,
+        "topic": "Business model",
+        "case": "Designing her OT offer suite"
+    },
+    {
+        "question": "Sarah sets a goal to reach $10k/month consistently. What key part of the LAPS sales model should she first focus on?",
+        "options": ["Sales", "Leads", "Presentations", "Automation"],
+        "answer": 1,
+        "topic": "Sales pipeline",
+        "case": "Generating early cash flow"
+    },
+    {
+        "question": "When creating her NDIS service agreement, Sarah wants to be transparent. What must she include?",
+        "options": [
+            "Testimonials",
+            "Cancellation policy, fees, and scope of service",
+            "Family photos",
+            "Instagram handle"
+        ],
+        "answer": 1,
+        "topic": "Compliance",
+        "case": "NDIS registration and ethics"
+    },
+    {
+        "question": "To grow her team, Sarah is writing a job ad. What hiring advice from the video should she apply?",
+        "options": [
+            "Only hire full-time staff",
+            "Emphasize salary",
+            "Pitch the mission and growth opportunity",
+            "Skip interviews for speed"
+        ],
+        "answer": 2,
+        "topic": "Team building",
+        "case": "Bringing on team members"
+    },
+    {
+        "question": "Which metaphor best helps Sarah understand why her business needs layers of systems and structure?",
+        "options": ["The Jenga Tower", "The Rollercoaster", "The Eiffel Tower", "The Racecar"],
+        "answer": 2,
+        "topic": "Business structure",
+        "case": "Avoiding chaos"
+    },
+    {
+        "question": "Sarah wants to increase her visibility online and attract referrals. Daniel recommends becoming a what?",
+        "options": ["Medical provider", "Key Person of Influence", "NDIS Rep", "Blogging expert"],
+        "answer": 1,
+        "topic": "Brand building",
+        "case": "Marketing her practice"
+    },
+    {
+        "question": "To legally practice and run her OT business in Australia, Sarah must register with which two essential entities?",
+        "options": ["AHPRA and ABN", "NDIS and Facebook", "AHPRA and PRODA", "PRODA and Instagram"],
+        "answer": 0,
+        "topic": "Legal requirements",
+        "case": "Regulatory compliance"
+    }
+]
