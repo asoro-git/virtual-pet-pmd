@@ -16,7 +16,7 @@ const bestiary = [
     { emoji: "🕷️", hp: 90 },
 ];
 
-const getStorage = (key: string, fallback: any) => {
+const getStorage = (key: string, fallback: string) => {
     if (typeof window === "undefined") return fallback;
     try {
         const val = localStorage.getItem(key);
@@ -28,13 +28,15 @@ const getStorage = (key: string, fallback: any) => {
 
 export default function HomePage() {
     // Core state
-    const [petLastFed, setPetLastFed] = useState(() => getStorage("petLastFed", Date.now()));
-    const [workStreak, setWorkStreak] = useState(() => getStorage("workStreak", 0));
-    const [pomodoroProgress, setPomodoroProgress] = useState(getStorage("pomodoroProgress", 0));
-    const [pomodorosToday, setPomodorosToday] = useState(() => getStorage("pomodorosToday", 0));
+    const [petLastFed, setPetLastFed] = useState(() =>
+        getStorage("petLastFed", Date.now().toString()),
+    );
+    const [workStreak, setWorkStreak] = useState(() => getStorage("workStreak", "0"));
+    const [pomodoroProgress, setPomodoroProgress] = useState(getStorage("pomodoroProgress", "0"));
+    const [pomodorosToday, setPomodorosToday] = useState(() => getStorage("pomodorosToday", "0"));
     const [petStatus, setPetStatus] = useState("Idle");
     const [petStats, setPetStats] = useState(() =>
-        getStorage("petStats", { level: 1, experience: 0, health: 100, avatar: "🐉" }),
+        getStorage("petStats", `{ level: 1, experience: 0, health: 100, avatar: "🐉" }`),
     );
     const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);

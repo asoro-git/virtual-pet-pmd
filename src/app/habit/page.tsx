@@ -9,6 +9,13 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function HabitTrackerPage() {
+    interface habits {
+        name: string;
+        done: boolean;
+        streak: number;
+        lastMarked: string | null;
+        markedDates: string[];
+    }
     const [habits, setHabits] = useState(() => {
         if (typeof window === "undefined") return [];
         const stored = localStorage.getItem("habits");
@@ -58,7 +65,28 @@ export default function HabitTrackerPage() {
         const today = new Date().toLocaleDateString();
         const lastReset = localStorage.getItem("lastHabitReset");
         if (lastReset !== today) {
-            setHabits((prev) => prev.map((h) => ({ ...h, done: false })));
+            setHabits(
+                (
+                    prev: [
+                        {
+                            name: string;
+                            done: boolean;
+                            streak: number;
+                            lastMarked: string | null;
+                            markedDates: string[];
+                        },
+                    ],
+                ) =>
+                    prev.map(
+                        (h: {
+                            name: string;
+                            done: boolean;
+                            streak: number;
+                            lastMarked: string | null;
+                            markedDates: string[];
+                        }) => ({ ...h, done: false }),
+                    ),
+            );
             localStorage.setItem("lastHabitReset", today);
         }
     }, []);
@@ -74,7 +102,7 @@ export default function HabitTrackerPage() {
     const handleAddHabit = () => {
         const trimmed = newHabit.trim();
         if (trimmed) {
-            setHabits((prev) => [
+            setHabits((prev: []) => [
                 ...prev,
                 { name: trimmed, done: false, streak: 0, lastMarked: null, markedDates: [] },
             ]);
@@ -84,51 +112,85 @@ export default function HabitTrackerPage() {
 
     const toggleHabit = (index: number) => {
         const today = new Date().toLocaleDateString();
-        setHabits((prev) => {
-            return prev.map((habit, i) => {
-                if (i !== index) return habit;
-                const wasMarkedToday = habit.lastMarked === today;
-                const nowMarked = !habit.done && !wasMarkedToday;
-                return {
-                    ...habit,
-                    done: !habit.done,
-                    streak: nowMarked ? (habit.streak || 0) + 1 : habit.done ? habit.streak : 0,
-                    lastMarked: nowMarked ? today : habit.lastMarked,
-                };
-            });
-        });
+        setHabits(
+            (
+                prev: [
+                    {
+                        name: string;
+                        done: boolean;
+                        streak: number;
+                        lastMarked: string | null;
+                        markedDates: string[];
+                    },
+                ],
+            ) => {
+                return prev.map((habit, i) => {
+                    if (i !== index) return habit;
+                    const wasMarkedToday = habit.lastMarked === today;
+                    const nowMarked = !habit.done && !wasMarkedToday;
+                    return {
+                        ...habit,
+                        done: !habit.done,
+                        streak: nowMarked ? (habit.streak || 0) + 1 : habit.done ? habit.streak : 0,
+                        lastMarked: nowMarked ? today : habit.lastMarked,
+                    };
+                });
+            },
+        );
     };
 
     const removeHabit = (index: number) => {
-        setHabits((prev) => prev.filter((_, i) => i !== index));
+        setHabits(
+            (
+                prev: [
+                    {
+                        name: string;
+                        done: boolean;
+                        streak: number;
+                        lastMarked: string | null;
+                        markedDates: string[];
+                    },
+                ],
+            ) => prev.filter((_, i) => i !== index),
+        );
     };
 
     const handleAddGoal = () => {
         const trimmed = newGoal.trim();
         if (trimmed) {
-            setGoals((prev) => [...prev, trimmed]);
+            setGoals((prev: []) => [...prev, trimmed]);
             setNewGoal("");
         }
     };
 
     const handleRemoveGoal = (index: number) => {
-        setGoals((prev) => prev.filter((_, i) => i !== index));
+        setGoals((prev: []) => prev.filter((_, i) => i !== index));
     };
 
     const handleAddBook = () => {
         const trimmed = newBook.trim();
         if (trimmed) {
-            setBooks((prev) => [...prev, trimmed]);
+            setBooks((prev: []) => [...prev, trimmed]);
             setNewBook("");
         }
     };
 
     const handleRemoveBook = (index: number) => {
-        setBooks((prev) => prev.filter((_, i) => i !== index));
+        setBooks((prev: []) => prev.filter((_, i) => i !== index));
     };
 
     const habitProgress = habits.length
-        ? (habits.filter((h) => h.done).length / habits.length) * 100
+        ? (habits.filter(
+              (h: {
+                  name: string;
+                  done: boolean;
+                  streak: number;
+                  lastMarked: string | null;
+                  markedDates: string[];
+              }) => h.done,
+          ).length /
+              habits.length) *
+          100
         : 0;
 
     return (
@@ -159,20 +221,31 @@ export default function HabitTrackerPage() {
                 >
                     <h2 className="text-lg font-medium mb-2">📆 Habit Streaks</h2>
                     <p className="text-sm text-zinc-500 mb-4">
-                        Track how long you've been consistent with each habit.
+                        Track how long you have been consistent with each habit.
                     </p>
                     <ul className="text-sm space-y-2">
-                        {habits.map((habit, index) => (
-                            <li
-                                key={index}
-                                className="flex justify-between items-center bg-zinc-100 px-4 py-2 rounded border border-zinc-200"
-                            >
-                                <span>{habit.name}</span>
-                                <span className="text-xs text-zinc-500">
-                                    🔥 {habit.streak || 0} days
-                                </span>
-                            </li>
-                        ))}
+                        {habits.map(
+                            (
+                                habit: {
+                                    name: string;
+                                    done: boolean;
+                                    streak: number;
+                                    lastMarked: string | null;
+                                    markedDates: string[];
+                                },
+                                index: number,
+                            ) => (
+                                <li
+                                    key={index}
+                                    className="flex justify-between items-center bg-zinc-100 px-4 py-2 rounded border border-zinc-200"
+                                >
+                                    <span>{habit.name}</span>
+                                    <span className="text-xs text-zinc-500">
+                                        🔥 {habit.streak || 0} days
+                                    </span>
+                                </li>
+                            ),
+                        )}
                     </ul>
                 </motion.section>
 
@@ -195,35 +268,46 @@ export default function HabitTrackerPage() {
                         <Button onClick={handleAddHabit}>Add</Button>
                     </div>
                     <ul className="space-y-2">
-                        {habits.map((habit, index) => (
-                            <motion.li
-                                key={index}
-                                className="flex justify-between items-center bg-zinc-100 px-4 py-2 rounded border border-zinc-200"
-                                whileHover={{ scale: 1.01 }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={habit.done}
-                                        onChange={() => toggleHabit(index)}
-                                        className="h-4 w-4 cursor-pointer"
-                                    />
-                                    <span
-                                        className={`cursor-pointer ${habit.done ? "line-through text-zinc-400" : ""}`}
-                                    >
-                                        {habit.name}
-                                    </span>
-                                </div>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-red-500"
-                                    onClick={() => removeHabit(index)}
+                        {habits.map(
+                            (
+                                habit: {
+                                    name: string;
+                                    done: boolean;
+                                    streak: number;
+                                    lastMarked: string | null;
+                                    markedDates: string[];
+                                },
+                                index: number,
+                            ) => (
+                                <motion.li
+                                    key={index}
+                                    className="flex justify-between items-center bg-zinc-100 px-4 py-2 rounded border border-zinc-200"
+                                    whileHover={{ scale: 1.01 }}
                                 >
-                                    ✖
-                                </Button>
-                            </motion.li>
-                        ))}
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={habit.done}
+                                            onChange={() => toggleHabit(index)}
+                                            className="h-4 w-4 cursor-pointer"
+                                        />
+                                        <span
+                                            className={`cursor-pointer ${habit.done ? "line-through text-zinc-400" : ""}`}
+                                        >
+                                            {habit.name}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-red-500"
+                                        onClick={() => removeHabit(index)}
+                                    >
+                                        ✖
+                                    </Button>
+                                </motion.li>
+                            ),
+                        )}
                     </ul>
                 </motion.section>
 
@@ -245,7 +329,7 @@ export default function HabitTrackerPage() {
                         <Button onClick={handleAddGoal}>Add</Button>
                     </div>
                     <ul className="text-sm list-disc pl-5 text-zinc-700 space-y-1">
-                        {goals.map((goal, index) => (
+                        {goals.map((goal: string, index: number) => (
                             <li key={index} className="flex justify-between items-center">
                                 <span>{goal}</span>
                                 <Button
@@ -277,7 +361,7 @@ export default function HabitTrackerPage() {
                         <Button onClick={handleAddBook}>Add</Button>
                     </div>
                     <ul className="text-sm list-disc pl-5 text-zinc-700 space-y-1">
-                        {books.map((book, index) => (
+                        {books.map((book: string, index: number) => (
                             <li key={index} className="flex justify-between items-center">
                                 <span>{book}</span>
                                 <Button
@@ -307,13 +391,13 @@ export default function HabitTrackerPage() {
                             value={newReflection}
                             onChange={(e) => setNewReflection(e.target.value)}
                             placeholder="Write a reflection..."
-                            className="w-full stats max-w-3xl bg-zinc-100 border border-zinc-300 rounded p-2 text-sm"
+                            className="w-full max-w-3xl bg-zinc-100 border border-zinc-300 rounded p-2 text-sm"
                         />
                         <Button
                             onClick={() => {
                                 const trimmed = newReflection.trim();
                                 if (trimmed) {
-                                    setReflections((prev) => [...prev, trimmed]);
+                                    setReflections((prev: []) => [...prev, trimmed]);
                                     setNewReflection("");
                                 }
                             }}
@@ -322,7 +406,7 @@ export default function HabitTrackerPage() {
                         </Button>
                     </div>
                     <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
-                        {reflections.map((entry, index) => (
+                        {reflections.map((entry: string, index: number) => (
                             <li
                                 key={index}
                                 className="flex justify-between items-start bg-zinc-100 px-4 py-2 rounded border border-zinc-200 text-sm gap-2"
@@ -381,7 +465,7 @@ export default function HabitTrackerPage() {
                                                 size="sm"
                                                 className="text-red-500"
                                                 onClick={() => {
-                                                    setReflections((prev) =>
+                                                    setReflections((prev: []) =>
                                                         prev.filter((_, i) => i !== index),
                                                     );
                                                 }}
@@ -417,7 +501,7 @@ export default function HabitTrackerPage() {
                             onClick={() => {
                                 const trimmed = newVaultItem.trim();
                                 if (trimmed) {
-                                    setVaultItems((prev) => [...prev, trimmed]);
+                                    setVaultItems((prev: []) => [...prev, trimmed]);
                                     setNewVaultItem("");
                                 }
                             }}
@@ -426,7 +510,7 @@ export default function HabitTrackerPage() {
                         </Button>
                     </div>
                     <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
-                        {vaultItems.map((entry, index) => (
+                        {vaultItems.map((entry: string, index: number) => (
                             <li
                                 key={index}
                                 className="flex justify-between items-start bg-zinc-100 px-4 py-2 rounded border border-zinc-200 text-sm gap-2"
@@ -483,7 +567,7 @@ export default function HabitTrackerPage() {
                                                 size="sm"
                                                 className="text-red-500"
                                                 onClick={() => {
-                                                    setVaultItems((prev) =>
+                                                    setVaultItems((prev: []) =>
                                                         prev.filter((_, i) => i !== index),
                                                     );
                                                 }}
@@ -507,14 +591,20 @@ export default function HabitTrackerPage() {
                 >
                     <h2 className="text-lg font-medium mb-2">📊 Habit Heatmap</h2>
                     <p className="text-sm text-zinc-500 mb-4">
-                        See how consistently you've completed habits this week.
+                        See how consistently you have completed habits this week.
                     </p>
                     <div className="grid grid-cols-7 gap-2 text-center">
                         {[...Array(30)].map((_, i) => {
                             const date = new Date(Date.now() - (29 - i) * 86400000);
                             const dateStr = date.toLocaleDateString();
-                            const completed = habits.filter((h) =>
-                                (h.markedDates || []).includes(dateStr),
+                            const completed = habits.filter(
+                                (h: {
+                                    name: string;
+                                    done: boolean;
+                                    streak: number;
+                                    lastMarked: string | null;
+                                    markedDates: string[];
+                                }) => (h.markedDates || []).includes(dateStr),
                             ).length;
                             const intensity = completed / habits.length;
                             const bg =
@@ -530,17 +620,39 @@ export default function HabitTrackerPage() {
                                 <div
                                     key={i}
                                     onClick={() => {
-                                        setHabits((prev) =>
-                                            prev.map((h) => {
-                                                const markedDates = h.markedDates || [];
-                                                const hasDate = markedDates.includes(dateStr);
-                                                return {
-                                                    ...h,
-                                                    markedDates: hasDate
-                                                        ? markedDates.filter((d) => d !== dateStr)
-                                                        : [...markedDates, dateStr],
-                                                };
-                                            }),
+                                        setHabits(
+                                            (
+                                                prev: [
+                                                    {
+                                                        name: string;
+                                                        done: boolean;
+                                                        streak: number;
+                                                        lastMarked: string | null;
+                                                        markedDates: string[];
+                                                    },
+                                                ],
+                                            ) =>
+                                                prev.map(
+                                                    (h: {
+                                                        name: string;
+                                                        done: boolean;
+                                                        streak: number;
+                                                        lastMarked: string | null;
+                                                        markedDates: string[];
+                                                    }) => {
+                                                        const markedDates = h.markedDates || [];
+                                                        const hasDate =
+                                                            markedDates.includes(dateStr);
+                                                        return {
+                                                            ...h,
+                                                            markedDates: hasDate
+                                                                ? markedDates.filter(
+                                                                      (d) => d !== dateStr,
+                                                                  )
+                                                                : [...markedDates, dateStr],
+                                                        };
+                                                    },
+                                                ),
                                         );
                                     }}
                                     className={`h-10 w-10 rounded ${bg} flex items-center justify-center text-xs text-white cursor-pointer`}
