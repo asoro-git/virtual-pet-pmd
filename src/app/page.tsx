@@ -8,7 +8,21 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const bestiary = [
+// Types
+interface Monster {
+    emoji: string;
+    hp: number;
+}
+
+interface PetStats {
+    level: number;
+    experience: number;
+    health: number;
+    avatar: string;
+}
+
+// Bestiary data
+const bestiary: Monster[] = [
     { emoji: "👾", hp: 100 },
     { emoji: "👹", hp: 120 },
     { emoji: "💀", hp: 150 },
@@ -16,51 +30,58 @@ const bestiary = [
     { emoji: "🕷️", hp: 90 },
 ];
 
-const getStorage = (key: string, fallback: string) => {
-    if (typeof window === "undefined") return fallback;
-    try {
-        const val = localStorage.getItem(key);
-        return val ? JSON.parse(val) : fallback;
-    } catch {
-        return fallback;
-    }
-};
+// Reusable localStorage hook
+function useLocalStorage<T>(key: string, initialValue: T) {
+    const isSSR = typeof window === "undefined";
+    const [state, setState] = useState<T>(() => {
+        if (isSSR) return initialValue;
+        try {
+            const stored = window.localStorage.getItem(key);
+            return stored ? (JSON.parse(stored) as T) : initialValue;
+        } catch {
+            return initialValue;
+        }
+    });
+
+    useEffect(() => {
+        if (isSSR) return;
+        try {
+            window.localStorage.setItem(key, JSON.stringify(state));
+        } catch {
+            // ignore write errors
+        }
+    }, [key, state, isSSR]);
+
+    return [state, setState] as const;
+}
 
 export default function HomePage() {
-    // Core state
-    const [petLastFed, setPetLastFed] = useState(() =>
-        getStorage("petLastFed", Date.now().toString()),
-    );
-    const [workStreak, setWorkStreak] = useState(() => getStorage("workStreak", "0"));
-    const [pomodoroProgress, setPomodoroProgress] = useState(getStorage("pomodoroProgress", "0"));
-    const [pomodorosToday, setPomodorosToday] = useState(() => getStorage("pomodorosToday", "0"));
-    const [petStatus, setPetStatus] = useState("Idle");
-    const [petStats, setPetStats] = useState(() =>
-        getStorage("petStats", `{ level: 1, experience: 0, health: 100, avatar: "🐉" }`),
-    );
-    const [startTime, setStartTime] = useState<number | null>(null);
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
-    const [monsterIndex, setMonsterIndex] = useState(0);
-    const [monster, setMonster] = useState(() => ({ ...bestiary[0] }));
+    // Core state with persistence
+    const [petLastFed, setPetLastFed] = useLocalStorage<number>("petLastFed", Date.now());
+    const [workStreak, setWorkStreak] = useLocalStorage<number>("workStreak", 0);
+    const [pomodoroProgress, setPomodoroProgress] = useLocalStorage<number>("pomodoroProgress", 0);
+    const [petStats, setPetStats] = useLocalStorage<PetStats>("petStats", {
+        level: 1,
+        experience: 0,
+        health: 100,
+        avatar: "🐉",
+    });
+
+    const [lifeVisions, setLifeVisions] = useLocalStorage<string[]>("lifeVisions", []);
+
+    // Non-persistent UI state
+    const [petStatus, setPetStatus] = useState<string>("Idle");
+    const [startTime, setStartTime] = useLocalStorage<number | null>("pomodoroStart", null);
+    const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+    const [monsterIndex, setMonsterIndex] = useState<number>(0);
+    const [monster, setMonster] = useState<Monster>({ ...bestiary[0] });
     const [battleLog, setBattleLog] = useState<string[]>([]);
-    const [spotifyUrl, setSpotifyUrl] = useState(
-        () =>
-            localStorage.getItem("spotifyUrl") ||
-            "https://open.spotify.com/show/383SYFKEios7ARBxCCUY8L?si=fb0a996e4ea14aac",
-    );
-    const [spotifyInput, setSpotifyInput] = useState("");
-    const [showWarning, setShowWarning] = useState(false);
+    const [showWarning, setShowWarning] = useState<boolean>(false);
+    const [newVision, setNewVision] = useState<string>("");
 
     // Reset daily pomodoros
-    useEffect(() => {
-        const today = new Date().toLocaleDateString();
-        if (localStorage.getItem("lastPomodoroDate") !== today) {
-            setPomodorosToday(0);
-            localStorage.setItem("lastPomodoroDate", today);
-        }
-    }, []);
 
-    // Pet health status
+    // Pet health status checker
     useEffect(() => {
         const iv = setInterval(() => {
             const hrs = (Date.now() - petLastFed) / 3600000;
@@ -78,169 +99,87 @@ export default function HomePage() {
         return () => clearInterval(iv);
     }, [petLastFed]);
 
-    // Pomodoro timer & battle
+    // Pomodoro timer & battle loop
     useEffect(() => {
         const timer = setInterval(() => {
-            if (startTime) {
-                setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
-                setMonster((prev) => {
-                    const dmg = Math.floor(Math.random() * 5);
-                    const newHp = Math.max(0, prev.hp - dmg);
-                    setBattleLog((logs) => [
-                        `⚔️ ${petStats.avatar} hits ${prev.emoji} for ${dmg} HP`,
-                        ...logs.slice(0, 4),
-                    ]);
-                    if (newHp === 0) {
-                        const gain = 10;
-                        const totalExp = petStats.experience + gain;
-                        const lvlUp = Math.floor(totalExp / 100);
-                        setPetStats({
-                            ...petStats,
-                            experience: totalExp % 100,
-                            level: petStats.level + lvlUp,
-                        });
-                        const next = (monsterIndex + 1) % bestiary.length;
-                        setMonsterIndex(next);
-                        return { ...bestiary[next] };
-                    }
-                    return { ...prev, hp: newHp };
-                });
-            } else {
+            if (!startTime) {
                 setElapsedSeconds(0);
+                return;
+            }
+            const seconds = Math.floor((Date.now() - startTime) / 1000);
+            setElapsedSeconds(seconds);
+
+            // Attack monster
+            setMonster((prev) => {
+                const dmg = Math.floor(Math.random() * 5);
+                const newHp = Math.max(0, prev.hp - dmg);
+                setBattleLog((logs) => [
+                    `⚔️ ${petStats.avatar} hits ${prev.emoji} for ${dmg} HP`,
+                    ...logs.slice(0, 4),
+                ]);
+                if (newHp === 0) {
+                    const gain = 10;
+                    const totalExp = petStats.experience + gain;
+                    const lvlUp = Math.floor(totalExp / 100);
+                    setPetStats((stats) => ({
+                        ...stats,
+                        experience: totalExp % 100,
+                        level: stats.level + lvlUp,
+                    }));
+                    const nextIndex = (monsterIndex + 1) % bestiary.length;
+                    setMonsterIndex(nextIndex);
+                    return { ...bestiary[nextIndex] };
+                }
+                return { ...prev, hp: newHp };
+            });
+
+            // Progress updates
+            setPomodoroProgress((seconds / 1500) * 100);
+            if (seconds >= 1500) {
+                setWorkStreak((s) => s + 1);
+                setStartTime(Date.now());
             }
         }, 1000);
         return () => clearInterval(timer);
-    }, [startTime, petStats, monsterIndex]);
-
-    // Persist everything
-    useEffect(() => {
-        localStorage.setItem("spotifyUrl", spotifyUrl);
-        localStorage.setItem("petLastFed", JSON.stringify(petLastFed));
-        localStorage.setItem("workStreak", JSON.stringify(workStreak));
-        localStorage.setItem("pomodorosToday", JSON.stringify(pomodorosToday));
-        localStorage.setItem("petStats", JSON.stringify(petStats));
-        localStorage.setItem("pomodoroProgress", JSON.stringify(pomodoroProgress));
-    }, [spotifyUrl, petLastFed, workStreak, pomodorosToday, petStats, pomodoroProgress]);
+    }, [
+        startTime,
+        petStats,
+        monsterIndex,
+        setStartTime,
+        setPetStats,
+        setPomodoroProgress,
+        setWorkStreak,
+    ]);
 
     // Handlers
-    const handleFeedPet = () => {
-        setPetLastFed(Date.now());
-        setShowWarning(false);
-    };
-    const formatTime = (sec: number) => {
-        const m = Math.floor(sec / 60)
-            .toString()
-            .padStart(2, "0");
-        const s = (sec % 60).toString().padStart(2, "0");
+    const handleFeedPet = (): void => setPetLastFed(Date.now());
+
+    const formatTime = (sec: number): string => {
+        const m = String(Math.floor(sec / 60)).padStart(2, "0");
+        const s = String(sec % 60).padStart(2, "0");
         return `${m}:${s}`;
     };
-    const handleSetSpotify = () => {
-        if (spotifyInput.trim()) {
-            setSpotifyUrl(spotifyInput);
-            setSpotifyInput("");
-        }
-    };
-    /* visions */
-    const [lifeVisions, setLifeVisions] = useState<string[]>(() => {
-        if (typeof window === "undefined") return [];
-        const saved = localStorage.getItem("lifeVisions");
-        return saved ? JSON.parse(saved) : [];
-    });
-    const [newVision, setNewVision] = useState("");
 
-    useEffect(() => {
-        localStorage.setItem("lifeVisions", JSON.stringify(lifeVisions));
-    }, [lifeVisions]);
-
-    const handleAddVision = () => {
-        const trimmed = newVision.trim();
-        if (trimmed) {
-            setLifeVisions((prev) => [...prev, trimmed]);
+    const handleAddVision = (): void => {
+        const text = newVision.trim();
+        if (text) {
+            setLifeVisions((v) => [...v, text]);
             setNewVision("");
         }
     };
 
-    const handleRemoveVision = (index: number) => {
-        setLifeVisions((prev) => prev.filter((_, i) => i !== index));
+    const handleRemoveVision = (idx: number): void => {
+        setLifeVisions((v) => v.filter((_, i) => i !== idx));
     };
 
-    /*pomodoros*/
-    // Pomodoro timer logic
-
-    useEffect(() => {
-        const stored = localStorage.getItem("pomodoroStart");
-        if (stored) {
-            setStartTime(parseInt(stored));
-        }
-    }, []);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const stored = localStorage.getItem("pomodoroStart");
-            const time = stored ? parseInt(stored) : null;
-            if (time && localStorage.getItem("pomodoroStart")) {
-                const seconds = Math.floor((Date.now() - time) / 1000);
-                setElapsedSeconds(seconds);
-
-                // Every 5 minutes: +1 stat
-                if (seconds % 300 === 0 && seconds >= 300) {
-                    if (!localStorage.getItem("pomodoroStart")) return;
-                    const stats = JSON.parse(
-                        localStorage.getItem("petStats") || '{"str":0,"def":0}',
-                    );
-                    const randomStat = Math.random() < 0.5 ? "str" : "def";
-                    stats[randomStat] += 1;
-                    localStorage.setItem("petStats", JSON.stringify(stats));
-                }
-
-                // Every 10 minutes: +1 level
-                if (seconds % 600 === 0 && seconds >= 600) {
-                    if (!localStorage.getItem("pomodoroStart")) return;
-                    const level = parseInt(localStorage.getItem("petLevel") || "1") + 1;
-                    localStorage.setItem("petLevel", level.toString());
-                }
-
-                // Every 25 minutes: count as a pomodoro session
-                if (seconds % 1500 === 0 && seconds >= 1500) {
-                    if (!localStorage.getItem("pomodoroStart")) return;
-                    const streak = parseInt(localStorage.getItem("workStreak") || "0") + 1;
-                    setWorkStreak(streak);
-                    localStorage.setItem("workStreak", workStreak.toString());
-                    setElapsedSeconds(0);
-                    localStorage.removeItem("pomodoroProgress");
-                    localStorage.removeItem("pomodoroStart");
-                    setStartTime(Date.now());
-                    localStorage.setItem("pomodoroStart", Date.now().toString());
-                }
-                setPomodoroProgress((seconds / 1500) * 100);
-                localStorage.setItem("pomodoroProgress", (seconds / 1500).toString());
-            } else {
-                setElapsedSeconds(0);
-                setPomodoroProgress(0);
-                localStorage.removeItem("pomodoroProgress");
-            }
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [workStreak, pomodoroProgress]);
-
-    const handleStartPomodoro = () => {
-        const now = Date.now();
-        setStartTime(now);
-        localStorage.setItem("pomodoroStart", now.toString());
-    };
-
-    const handleResetPomodoro = () => {
-        localStorage.removeItem("pomodoroStart");
-        setStartTime(null);
-    };
-
+    const handleStartPomodoro = (): void => setStartTime(Date.now());
+    const handleResetPomodoro = (): void => setStartTime(null);
     return (
         <motion.main
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col min-h-screen bg-white text-zinc-800 antialiased"
         >
             {" "}
             {/* Notion-style NavBar */}
@@ -383,26 +322,6 @@ export default function HomePage() {
                     <Separator />
                     <LifeOSPanel />
                 </section>{" "}
-                {/* Spotify Panel */}
-                <motion.section className="md:col-span-4 border border-zinc-200 bg-white p-6 rounded-xl">
-                    <h2 className="text-lg font-medium mb-2">🎧 Spotify</h2>
-                    <Input
-                        placeholder="Paste Spotify URL..."
-                        className="bg-zinc-100 border-zinc-300 mb-2"
-                        value={spotifyInput}
-                        onChange={(e) => setSpotifyInput(e.target.value)}
-                    />
-                    <Button onClick={handleSetSpotify}>Set URL</Button>
-                    <div className="overflow-hidden rounded mt-4">
-                        <iframe
-                            className="w-full h-24"
-                            src={`https://open.spotify.com/embed/show/${spotifyUrl.split("/").pop()?.split("?")[0]}`}
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                            allowFullScreen
-                            loading="lazy"
-                        ></iframe>
-                    </div>
-                </motion.section>
             </div>
         </motion.main>
     );

@@ -1,15 +1,35 @@
 "use client";
 //
 // import { useState, useEffect } from "react";
-// import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
 // import { Textarea } from "@/components/ui/textarea";
 // import { Progress } from "@/components/ui/progress";
-// import { motion } from "framer-motion";
-// import Link from "next/link";
+import { motion } from "framer-motion";
+import Link from "next/link";
 //
 export default function HabitTrackerPage() {
-    return;
+    return (
+        <motion.h1
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="flex flex-col gap-4 justify-center items-center text-3xl h-full"
+        >
+            Development in progress
+            <motion.p
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 3, ease: "easeOut" }}
+            >
+                <Button asChild>
+                    <Link href="/">back to main page</Link>
+                </Button>
+            </motion.p>
+        </motion.h1>
+    );
 }
 //     interface habits {
 //         name: string;
