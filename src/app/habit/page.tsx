@@ -15,7 +15,7 @@ export default function HabitTrackerPage() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="flex flex-col gap-4 justify-center items-center text-3xl h-full"
+            className="flex flex-col gap-4 min-h-screen justify-center items-center text-3xl h-full"
         >
             Development in progress
             <motion.p
