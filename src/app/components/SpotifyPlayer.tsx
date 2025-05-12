@@ -3,34 +3,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useLocalStorage from "@/components/useLocalStorage";
 export function SpotifyPlayer() {
     // Reusable localStorage hook
-    function useLocalStorage<T>(key: string, initialValue: T) {
-        const [state, setState] = useState<T>(initialValue);
 
-        useEffect(() => {
-            if (typeof window === "undefined") return;
-            try {
-                const stored = window.localStorage.getItem(key);
-                if (stored !== null) {
-                    setState(JSON.parse(stored));
-                }
-            } catch {
-                // ignore
-            }
-        }, [key]);
-
-        useEffect(() => {
-            if (typeof window === "undefined") return;
-            try {
-                window.localStorage.setItem(key, JSON.stringify(state));
-            } catch {
-                // ignore
-            }
-        }, [key, state]);
-
-        return [state, setState] as const;
-    }
     const [spotifyUrl, setSpotifyUrl] = useLocalStorage<string>(
         "spotifyUrl",
         "https://open.spotify.com/playlist/37i9dQZF1DX1uaml3UXYLk?si=7a6fb5b5aea642c1",

@@ -7,6 +7,7 @@ import { LifeOSPanel } from "@/app/components/LifeOS";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import useLocalStorage from "@/app/components/useLocalStorage";
 
 // Types
 interface Monster {
@@ -29,34 +30,6 @@ const bestiary: Monster[] = [
     { emoji: "🦇", hp: 80 },
     { emoji: "🕷️", hp: 90 },
 ];
-
-// Reusable localStorage hook
-function useLocalStorage<T>(key: string, initialValue: T) {
-    const [state, setState] = useState<T>(initialValue);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        try {
-            const stored = window.localStorage.getItem(key);
-            if (stored !== null) {
-                setState(JSON.parse(stored));
-            }
-        } catch {
-            // ignore
-        }
-    }, [key]);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        try {
-            window.localStorage.setItem(key, JSON.stringify(state));
-        } catch {
-            // ignore
-        }
-    }, [key, state]);
-
-    return [state, setState] as const;
-}
 
 export default function HomePage() {
     // Core state with persistence
