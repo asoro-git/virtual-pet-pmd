@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html
             lang="en"
-            className={`${jetbrains.variable} ${inter.variable} ${lora.variable} ${playfair.variable} antialiased`}
+            className={`max-h-screen ${jetbrains.variable} ${inter.variable} ${lora.variable} ${playfair.variable} antialiased`}
         >
             <body className="flex flex-col bg-white text-zinc-800 antialiased">
                 {children}

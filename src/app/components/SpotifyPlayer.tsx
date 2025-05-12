@@ -6,25 +6,28 @@ import { Input } from "@/components/ui/input";
 export function SpotifyPlayer() {
     // Reusable localStorage hook
     function useLocalStorage<T>(key: string, initialValue: T) {
-        const isSSR = typeof window === "undefined";
-        const [state, setState] = useState<T>(() => {
-            if (isSSR) return initialValue;
-            try {
-                const stored = window.localStorage.getItem(key);
-                return stored ? (JSON.parse(stored) as T) : initialValue;
-            } catch {
-                return initialValue;
-            }
-        });
+        const [state, setState] = useState<T>(initialValue);
 
         useEffect(() => {
-            if (isSSR) return;
+            if (typeof window === "undefined") return;
+            try {
+                const stored = window.localStorage.getItem(key);
+                if (stored !== null) {
+                    setState(JSON.parse(stored));
+                }
+            } catch {
+                // ignore
+            }
+        }, [key]);
+
+        useEffect(() => {
+            if (typeof window === "undefined") return;
             try {
                 window.localStorage.setItem(key, JSON.stringify(state));
             } catch {
-                // ignore write errors
+                // ignore
             }
-        }, [key, state, isSSR]);
+        }, [key, state]);
 
         return [state, setState] as const;
     }
@@ -43,7 +46,13 @@ export function SpotifyPlayer() {
     };
     /* Spotify Panel */
     return (
-        <motion.section className="md:col-span-4 border border-zinc-200 bg-white p-6 rounded-xl">
+        <motion.section
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="md:col-span-4 shadow-3xl border border-zinc-200 bg-white p-6 rounded-xl"
+        >
             <h2 className="text-lg font-medium mb-2">🎧 Spotify</h2>
             <Input
                 placeholder="Paste Spotify URL..."
