@@ -46,7 +46,7 @@ export default function HomePage() {
     const [lifeVisions, setLifeVisions] = useLocalStorage<string[]>("lifeVisions", []);
 
     // Non-persistent UI state
-    const [petStatus, setPetStatus] = useState<string>("Idle");
+    const [petStatus, setPetStatus] = useLocalStorage<string>("petStatus", "Idle");
     const [startTime, setStartTime] = useLocalStorage<number | null>("pomodoroStart", null);
     const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
     const [monsterIndex, setMonsterIndex] = useState<number>(0);
@@ -73,7 +73,7 @@ export default function HomePage() {
             }
         }, 2000);
         return () => clearInterval(iv);
-    }, [petLastFed]);
+    }, [setPetStatus, petLastFed]);
 
     // Pomodoro timer & battle loop
     useEffect(() => {
